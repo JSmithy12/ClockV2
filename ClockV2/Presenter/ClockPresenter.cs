@@ -1,10 +1,7 @@
 ﻿using ClockV2.Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Forms;
 
 namespace ClockV2.Presenter
 {
@@ -12,29 +9,44 @@ namespace ClockV2.Presenter
     {
         private readonly ClockModel model;
         private readonly ClockView view;
-        private readonly Timer timer;
+        private readonly System.Timers.Timer timer;
 
         public ClockPresenter(ClockModel model, ClockView view)
         {
             this.model = model;
             this.view = view;
 
-            // Link the View to this Presenter
+           
             view.SetPresenter(this);
 
-            // Set up the timer for regular updates
-            timer = new Timer(1000); // 1-second interval
+            
+            timer = new System.Timers.Timer(1000); 
             timer.Elapsed += (s, e) => UpdateClock();
             timer.Start();
         }
 
         private void UpdateClock()
         {
-            // Fetch the current time from the Model
             DateTime currentTime = model.GetCurrentTime();
 
-            // Update the View with the new time
+           
+            Alarm dueAlarm = model.PopIfDue(currentTime);
+            if (dueAlarm != null)
+            {
+                
+                view.Invoke(new Action(() =>
+                {
+                    MessageBox.Show($"Alarm: {dueAlarm.Label}", "Alarm", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }));
+            }
+
+            
             view.Invoke(new Action(() => view.UpdateClock(currentTime)));
         }
+        public void AddAlarm(DateTime time, string label)
+        {
+            model.AddAlarm(new Alarm(time, label));
+        }
+
     }
 }
