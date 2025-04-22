@@ -55,7 +55,7 @@ namespace ClockV2.Presenter
 
         public void LoadAlarms(string filePath)
         {
-            var alarms = ICalendarHelper.LoadAlarms(filePath); 
+            var alarms = ICalendarHelper.LoadAlarms(filePath);
             model.SetAlarms(alarms);
         }
 

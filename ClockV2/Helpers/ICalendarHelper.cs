@@ -11,6 +11,11 @@ namespace ClockV2.Helpers
     {
         public static void SaveAlarms(List<Alarm> alarms, string filePath)
         {
+            if (alarms == null || alarms.Count == 0)
+            {
+                throw new InvalidOperationException("Cannot save iCalendar file: No alarms to save. At least one alarm is required.");
+            }
+
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine("BEGIN:VCALENDAR");
@@ -20,6 +25,11 @@ namespace ClockV2.Helpers
             foreach (var alarm in alarms)
             {
                 sb.AppendLine("BEGIN:VEVENT");
+
+                sb.AppendLine($"DTSTAMP:{DateTime.UtcNow:yyyyMMddTHHmmssZ}");
+
+                sb.AppendLine($"UID:{Guid.NewGuid()}");
+
                 sb.AppendLine($"SUMMARY:{alarm.Label}");
                 sb.AppendLine($"DTSTART:{alarm.Time.ToUniversalTime():yyyyMMddTHHmmssZ}");
                 sb.AppendLine("BEGIN:VALARM");

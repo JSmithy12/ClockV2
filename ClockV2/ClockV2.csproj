@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\ICalendarHelper.cs" />
     <Compile Include="PriorityQueue\HeapPriorityQueue.cs" />
     <Compile Include="Model\Alarm.cs" />
     <Compile Include="Helpers\ClockDrawingHelper.cs" />
