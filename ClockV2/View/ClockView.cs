@@ -22,6 +22,7 @@ namespace ClockV2
         private ClockPresenter presenter;
         private readonly ClockDrawingHelper drawingHelper = new ClockDrawingHelper();
         private DateTime currentTime;
+        private ListBox alarmListBox;
 
         private HeapPriorityQueue<Alarm> alarmQueue = new HeapPriorityQueue<Alarm>(20); // or another capacity
 
@@ -36,8 +37,23 @@ namespace ClockV2
             currentTime = DateTime.Now;
 
             InitialiseAlarmUI();
-        }
 
+            var result = MessageBox.Show("Load saved alarms?", "Load", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+            {
+                using (var ofd = new OpenFileDialog { Filter = "iCalendar Files|*.ics" })
+                {
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        this.Load += (s, e) =>
+                        {
+                            presenter.LoadAlarms(ofd.FileName);
+                            DisplayAlarms(presenter.GetAllAlarms());
+                        };
+                    }
+                }
+            }
+        }
         public void SetPresenter(ClockPresenter presenter)
         {
             this.presenter = presenter;
@@ -67,8 +83,25 @@ namespace ClockV2
             };
             setAlarmButton.Click += SetAlarmButton_Click;
             this.Controls.Add(setAlarmButton);
+
+            alarmListBox = new ListBox
+            {
+                Location = new Point(setAlarmButton.Right + 20, setAlarmButton.Top),
+                Size = new Size(200, 100)
+            };
+
+            this.Controls.Add(alarmListBox);
         }
 
+        public void DisplayAlarms(List<Alarm> alarms)
+        { 
+            alarmListBox.Items.Clear();
+
+            foreach (var alarm in alarms)
+            {
+                alarmListBox.Items.Add($"{alarm.Time:HH:mm} - {alarm.Label}");
+            }
+        }
         private void SetAlarmButton_Click(object sender, EventArgs e)
         {
             using (var dialog = new AlarmDialog(alarmQueue))
@@ -76,8 +109,30 @@ namespace ClockV2
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     presenter.AddAlarm(dialog.AlarmTime, dialog.AlarmLabel);
+                    DisplayAlarms(presenter.GetAllAlarms());
                 }
             }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            var result = MessageBox.Show("Save alarms before exiting?", "Save", MessageBoxButtons.YesNoCancel);
+            if (result == DialogResult.Yes)
+            {
+                using (var sfd = new SaveFileDialog { Filter = "iCalendar Files|*.ics" })
+                {
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        presenter.SaveAlarms(sfd.FileName);
+                    }
+                }
+            }
+            else if (result == DialogResult.Cancel) 
+            {
+                e.Cancel = true;
+            }
+
+            base.OnFormClosing(e);
         }
     }
 }

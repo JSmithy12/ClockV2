@@ -13,7 +13,6 @@ namespace ClockV2.Model
 
         public ClockModel()
         {
-            // Set max capacity to 100 alarms, or choose as needed
             alarmQueue = new HeapPriorityQueue<Alarm>(100);
         }
 
@@ -24,10 +23,8 @@ namespace ClockV2.Model
 
         public void AddAlarm(Alarm alarm)
         {
-            // Priority: how soon it is (lower = sooner)
             int priority = (int)(alarm.Time - DateTime.Now).TotalSeconds;
 
-            // Ensure future alarms only
             if (priority < 0)
                 throw new ArgumentException("Alarm time must be in the future.");
 
@@ -62,6 +59,35 @@ namespace ClockV2.Model
                 }
             }
             return null;
+        }
+
+        public List<Alarm> GetAllAlarms()
+        {
+            var alarms = new List<Alarm>();
+
+            var field = typeof(HeapPriorityQueue<Alarm>).GetField("heap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var internalHeap = (ValueTuple<Alarm, int>[])field.GetValue(alarmQueue);
+
+            var sizeField = typeof(HeapPriorityQueue<Alarm>).GetField("size", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            int heapSize = (int)sizeField.GetValue(alarmQueue);
+
+            for (int i = 0; i < heapSize; i++)
+            {
+                alarms.Add(internalHeap[i].Item1);
+            }
+
+            alarms.Sort();
+            return alarms;
+        }
+
+
+        public void SetAlarms(List<Alarm> alarms)
+        {
+            alarmQueue = new HeapPriorityQueue<Alarm>(100);
+            foreach (var alarm in alarms)
+            {
+                AddAlarm(alarm);
+            }
         }
     }
 }
