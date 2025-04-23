@@ -1,38 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ClockV2.Model
+public class Alarm : IComparable<Alarm>
 {
-    public class Alarm : IComparable<Alarm>
+    public TimeSpan Time { get; set; }
+    public string Label { get; set; }
+
+    public Alarm(TimeSpan time, string label)
     {
-        public DateTime Time { get; set; }
-        public string Label { get; set; }
+        Time = time;
+        Label = label;
+    }
 
-        public int Priority
-        {
-            get
-            {
-                return (int)(Time.Hour * 60 + Time.Minute);
-            }
-        }
+    public double Priority => Time.TotalSeconds;
 
-        public Alarm(DateTime time, string label)
-        {
-            Time = time;
-            Label = label;
-        }
-
-        public int CompareTo(Alarm other)
-        {
-            return Time.CompareTo(other.Time);
-        }
-
-        public override string ToString()
-        {
-            return $"{Label} at {Time}";
-        }
+    public int CompareTo(Alarm other)
+    {
+        return Time.CompareTo(other.Time);
+    }
+   
+    // Return a string representation of the alarm in the format "hh:mm - Label"
+    public override string ToString()
+    {
+        return $"{Time:hh\\:mm} - {Label}";
     }
 }

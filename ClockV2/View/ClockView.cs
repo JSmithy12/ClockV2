@@ -10,6 +10,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -24,8 +25,6 @@ namespace ClockV2
         private DateTime currentTime;
         private ListBox alarmListBox;
 
-        private HeapPriorityQueue<Alarm> alarmQueue = new HeapPriorityQueue<Alarm>(20); // or another capacity
-
         public ClockView()
         {
             InitializeComponent();
@@ -37,7 +36,7 @@ namespace ClockV2
             currentTime = DateTime.Now;
 
             InitialiseAlarmUI();
-
+            //Asks users if they want to load alarm preset first
             var result = MessageBox.Show("Load saved alarms?", "Load", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
             {
@@ -63,7 +62,7 @@ namespace ClockV2
         {
             this.currentTime = currentTime;
             Panel_Clock.Invalidate();
-        }
+        }   
 
         private void Panel_Clock_Paint(object sender, PaintEventArgs e)
         {
@@ -94,21 +93,27 @@ namespace ClockV2
         }
 
         public void DisplayAlarms(List<Alarm> alarms)
-        { 
+        {
             alarmListBox.Items.Clear();
 
             foreach (var alarm in alarms)
             {
-                alarmListBox.Items.Add($"{alarm.Time:HH:mm} - {alarm.Label}");
+                alarmListBox.Items.Add($"{alarm.Time:hh\\:mm} - {alarm.Label}");
             }
         }
         private void SetAlarmButton_Click(object sender, EventArgs e)
         {
-            using (var dialog = new AlarmDialog(alarmQueue))
+            using (var dialog = new AlarmDialog())
             {
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    presenter.AddAlarm(dialog.AlarmTime, dialog.AlarmLabel);
+                    var selectedTime = dialog.AlarmTime;
+                    var label = dialog.AlarmLabel;
+
+                    // Add the alarm through the presenter
+                    presenter.AddAlarm(DateTime.Today + selectedTime, label);
+
+                    // Refresh the display
                     DisplayAlarms(presenter.GetAllAlarms());
                 }
             }
@@ -116,6 +121,7 @@ namespace ClockV2
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            //Asks user if they want to save current alarms as preset for next time
             var result = MessageBox.Show("Save alarms before exiting?", "Save", MessageBoxButtons.YesNoCancel);
             if (result == DialogResult.Yes)
             {
@@ -127,7 +133,7 @@ namespace ClockV2
                     }
                 }
             }
-            else if (result == DialogResult.Cancel) 
+            else if (result == DialogResult.Cancel)
             {
                 e.Cancel = true;
             }

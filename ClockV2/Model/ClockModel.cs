@@ -23,10 +23,11 @@ namespace ClockV2.Model
 
         public void AddAlarm(Alarm alarm)
         {
-            int priority = (int)(alarm.Time - DateTime.Now).TotalSeconds;
+            //Prioritises alarms based on lowest time first
+            int priority = (int)(alarm.Time - DateTime.Now.TimeOfDay).TotalSeconds;
 
             if (priority < 0)
-                throw new ArgumentException("Alarm time must be in the future.");
+                priority += 86400; 
 
             alarmQueue.Add(alarm, priority);
         }
@@ -47,12 +48,12 @@ namespace ClockV2.Model
             return !alarmQueue.IsEmpty();
         }
 
-        public Alarm PopIfDue(DateTime currentTime)
+        public Alarm PopIfDue(TimeSpan currentTimeOfDay)
         {
             if (!alarmQueue.IsEmpty())
             {
                 var nextAlarm = alarmQueue.Head();
-                if (nextAlarm.Time <= currentTime)
+                if (currentTimeOfDay >= nextAlarm.Time)
                 {
                     alarmQueue.Remove();
                     return nextAlarm;
@@ -79,7 +80,6 @@ namespace ClockV2.Model
             alarms.Sort();
             return alarms;
         }
-
 
         public void SetAlarms(List<Alarm> alarms)
         {

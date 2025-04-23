@@ -29,29 +29,31 @@ namespace ClockV2.Presenter
         private void UpdateClock()
         {
             DateTime currentTime = model.GetCurrentTime();
-
-            Alarm dueAlarm = model.PopIfDue(currentTime);
+            Alarm dueAlarm = model.PopIfDue(currentTime.TimeOfDay);
             if (dueAlarm != null)
             {
+                // Display due alarm in a message box
                 view.Invoke(new Action(() =>
                 {
                     MessageBox.Show($"Alarm: {dueAlarm.Label}", "Alarm", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }));
             }
-
             view.Invoke(new Action(() => view.UpdateClock(currentTime)));
         }
 
         public void AddAlarm(DateTime time, string label)
         {
-            model.AddAlarm(new Alarm(time, label));
+            model.AddAlarm(new Alarm(time.TimeOfDay, label));
         }
 
+        // Save alarms to a file in iCalendar format
         public void SaveAlarms(string filePath)
         {
             var alarms = model.GetAllAlarms();
             ICalendarHelper.SaveAlarms(alarms, filePath);
         }
+
+        // Load alarms from a file and set them in the model
 
         public void LoadAlarms(string filePath)
         {

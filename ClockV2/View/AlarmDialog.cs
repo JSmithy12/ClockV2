@@ -7,15 +7,12 @@ namespace ClockV2.View
 {
     public partial class AlarmDialog : Form
     {
-        private HeapPriorityQueue<Alarm> _alarmQueue;
-
-        public DateTime AlarmTime => dateTimePicker.Value;
+        public TimeSpan AlarmTime => dateTimePicker.Value.TimeOfDay;
         public string AlarmLabel => textBoxLabel.Text;
 
-        public AlarmDialog(HeapPriorityQueue<Alarm> alarmQueue)
+        public AlarmDialog()
         {
             InitializeComponent();
-            _alarmQueue = alarmQueue;
 
             buttonOk.Click += ButtonOk_Click;
             buttonCancel.Click += ButtonCancel_Click;
@@ -23,18 +20,8 @@ namespace ClockV2.View
 
         private void ButtonOk_Click(object sender, EventArgs e)
         {
-            var alarm = new Alarm(dateTimePicker.Value, textBoxLabel.Text);
-
-            try
-            {
-                _alarmQueue.Add(alarm, alarm.Priority);
-                this.DialogResult = DialogResult.OK;
-                this.Close();
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show($"Error adding alarm: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)

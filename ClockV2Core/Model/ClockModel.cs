@@ -8,10 +8,12 @@ namespace ClockV2.Model
 {
     public class ClockModel
     {
+        // Priority queue to store alarms based on their time
         private HeapPriorityQueue<Alarm> alarmQueue;
 
         public ClockModel()
         {
+            //Queue has a limit of 100 alarms
             alarmQueue = new HeapPriorityQueue<Alarm>(100);
         }
 
@@ -60,6 +62,7 @@ namespace ClockV2.Model
             return null;
         }
 
+        // Retrieve all alarms in the queue, sorted by alarm time
         public List<Alarm> GetAllAlarms()
         {
             var alarms = new List<Alarm>();

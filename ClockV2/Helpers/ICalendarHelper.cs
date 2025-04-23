@@ -28,10 +28,14 @@ namespace ClockV2.Helpers
 
                 sb.AppendLine($"DTSTAMP:{DateTime.UtcNow:yyyyMMddTHHmmssZ}");
 
+                // Generate a unique ID for each alarm to avoid duplication
                 sb.AppendLine($"UID:{Guid.NewGuid()}");
 
                 sb.AppendLine($"SUMMARY:{alarm.Label}");
-                sb.AppendLine($"DTSTART:{alarm.Time.ToUniversalTime():yyyyMMddTHHmmssZ}");
+
+                DateTime alarmDateTime = DateTime.Today + alarm.Time;
+                sb.AppendLine($"DTSTART:{alarmDateTime:yyyyMMddTHHmmss}");
+
                 sb.AppendLine("BEGIN:VALARM");
                 sb.AppendLine("TRIGGER:-PT0M");
                 sb.AppendLine("ACTION:DISPLAY");
@@ -61,12 +65,19 @@ namespace ClockV2.Helpers
                 else if (line.StartsWith("DTSTART:"))
                 {
                     string timeStr = line.Substring("DTSTART:".Length);
-                    time = DateTime.ParseExact(timeStr, "yyyyMMdd'T'HHmmss'Z'", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+                    string format = timeStr.EndsWith("Z") ? "yyyyMMdd'T'HHmmss'Z'" : "yyyyMMddTHHmmss";
+                    time = DateTime.ParseExact(timeStr, format, CultureInfo.InvariantCulture);
+
+                    if (timeStr.EndsWith("Z"))
+                    {
+                        // If it's UTC time, convert to local
+                        time = time.ToLocalTime();
+                    }
                 }
                 else if (line == "END:VEVENT")
                 {
-                    if (time > DateTime.Now)
-                        alarms.Add(new Alarm(time, label));
+                    if (time > DateTime.MinValue)
+                        alarms.Add(new Alarm(time.TimeOfDay, label)); // Add the parsed alarm to the list
                     label = "";
                     time = DateTime.MinValue;
                 }
